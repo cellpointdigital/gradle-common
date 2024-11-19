@@ -9,46 +9,53 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.regex.*
 
-if (findProperty('addonsPath') == null) {
-    throw new GradleException('"addonsPath" property is not configured, please add: ext.addonsPath = "${projectDir}/addons/src";  to your root build.gradle file.')
-}
+class UseJavaFeaturesExtension {
 
-ext {
-    def now = OffsetDateTime.now(ZoneOffset.UTC)
-    timestamp = now // assign ext.timestamp
+    JavaVersion javaVersion = JavaVersion.current()
+    boolean processJavaResources = true
+    boolean repositories = true;
+    boolean dependencies = true;
+    boolean test = true;
+    boolean spotbugs = false;
+    boolean jacoco = true;
 
-    // This function will apply build configurations required for java based project.
-    useJavaFeatures = { Project p, Map<String, Object> config = [:] ->
-        if (!p.plugins.hasPlugin('java')) {
-            throw new GradleException("useJavaFeatures() can be used in project with 'java' plugin connected.")
-        }
+    private final now = OffsetDateTime.now(ZoneOffset.UTC)
+    private Project p
 
-        def javaVersion = (config.javaVersion ?: JavaVersion.current()) as JavaVersion
-        ext.javaVersion = javaVersion
-
-        // takes file from root/gradle, if not exists it takes common file
-        def applyIfExists = name -> {
-            File overriding = p.file('gradle/' + name + '.gradle')
+    void applyIfExists(boolean enabled, String name) {
+        if (enabled) {
+            File overriding = p.file("gradle/${name}.gradle")
             if (overriding.exists()) {
                 p.apply([from: overriding])
             } else {
-                File overridingRoot = p.rootProject.file('gradle/' + name + '.gradle')
+                // search the file in root dir
+                final String rootDir = p.getRootDir()
+                final File overridingRoot = p.file("${rootDir}/gradle/${name}.gradle")
                 if (p != p.rootProject && overridingRoot.exists()) {
                     p.apply([from: overridingRoot])
                 } else {
-                    File addon = p.rootProject.file(p.property('addonsPath') + '/' + name + '.gradle')
-                    if (addon.exists() && !Boolean.FALSE.equals(config.get(name))) {
+                    File addon = p.file("${rootDir}/addons/src/${name}.gradle")
+                    if (addon.exists()) {
                         p.apply([from: addon])
                     }
                 }
             }
         }
+    }
 
-        applyIfExists('repositories')
-        applyIfExists('dependencies')
-        applyIfExists('test')
-        applyIfExists('spotbugs')
-        applyIfExists('jacoco')
+
+    void configure(Project p) {
+        this.p = p
+
+        if (!p.plugins.hasPlugin('java')) {
+            throw new GradleException("useJavaFeatures() can be used in project with 'java' plugin connected.")
+        }
+
+        applyIfExists(repositories, 'repositories')
+        applyIfExists(dependencies, 'dependencies')
+        applyIfExists(test, 'test')
+        applyIfExists(spotbugs, 'spotbugs')
+        applyIfExists(jacoco, 'jacoco')
 
         p.compileJava.options.encoding = "UTF-8"
         p.compileTestJava.options.encoding = "UTF-8"
@@ -58,6 +65,7 @@ ext {
         }
 
         if (p.plugins.hasPlugin('org.springframework.boot')) {
+            // apply dependencies from 'annotationProcessor' configuration
             p.configurations {
                 compileOnly {
                     extendsFrom annotationProcessor
@@ -69,84 +77,112 @@ ext {
             }
         }
 
+        def gitDetails = p.getParent().ext.gitDetails
 
         // calculate effective build version
-        def runNumber = ext.has('runNumber') ? ext.get('runNumber') : System.getenv('GITHUB_RUN_NUMBER')
-        def semver = prepareSemver(version, ext.gitDetails, ext.branchName, runNumber, now)
+        String runNumber = ext.has('runNumber') ? ext.get('runNumber') : System.getenv('GITHUB_RUN_NUMBER')
+
+        String branchName
+        if (ext.has('branchName')) { // from -PbranchName=xxxx parameter
+            branchName = ext.branchName
+        } else {
+            if (System.getenv('GITHUB_EVENT_NAME') == 'release') {
+                branchName = 'release/' + System.getenv('GITHUB_REF_NAME')
+            } else {
+                branchName = gitDetails.branchName
+            }
+        }
+
+        if (branchName != null) {
+            // checking GIT branch name
+            def eq = ["dev", "main", "HEAD"]
+            def start = ["feature/", "hotfix/", "bugfix/", "release/", "PR-"]
+            def end = ["/merge"]
+            if (!eq.contains(branchName)
+                    && (start.find { branchName.startsWith(it) }) == null
+                    && (end.find { branchName.endsWith(it) }) == null)
+            {
+                throw new GradleException("Unsupported branch name '" + branchName +
+                        "', only ["+(eq+start+end).join(",")+"] are allowed!")
+            }
+        }
+
+        def semver = prepareSemver(p.version, gitDetails.commitId, gitDetails.tags, branchName, runNumber, now)
         println("The effective version of the application is '$semver'.")
         ext.buildSemver = semver
 
+        def nowStr = now.toString() // UTC build time example: 2023-10-15T21:19:24.095308270Z
         // replace tokens @build.version@, @build.semver@ and @build.timestamp@
-        if (!Boolean.FALSE.equals(config.get('processJavaResources'))) {
+        if (processJavaResources) {
             p.processResources {
                 filesMatching(['**/*.properties', '**/*.yaml']) {
                     filter(ReplaceTokens, tokens: [
                             'build.version'  : p.version,
                             'build.semver'   : semver,
-                            'build.timestamp': now.toString() // UTC build time example: 2023-10-15T21:19:24.095308270Z
+                            'build.timestamp': nowStr 
                     ])
                 }
             }
         }
-
     }
+
+    /**
+     * Create semver2 compatible string X.Y.Z[.R][-name]+[GIT_SHA-]yyMMddHHmm
+     *
+     * @param ver version of project (contains X.Y.0-*)
+     * @param tags tags in format sha-xxxxx, X.Y.Z-*
+     * @param branch an effective branch name (release/Nuuk, feature/CPD-NNNN-*, feature/CPD-NNNN-yyMMddHHmm)
+     * @param runNumber CI run number
+     * @return not null string
+     */
+    private static String prepareSemver(String ver, String sha, List<String> tags, String branch, String runNumber,
+                                        OffsetDateTime now) {
+        // find X.Y.Z part from several sources
+        tags = tags ?: []
+        def cases = tags + [branch, ver]
+        def pattern = ~/^(v|v\.)?(\d+(\.\d+){2})($|[-_.].+$)/
+        def result = cases.stream().filter(s -> s != null)
+                .map(pattern::matcher).filter(Matcher::find).map(m -> m.group(2)).findFirst()
+                .orElseThrow(() -> new GradleException("Cannot determine the app version! You need set project version or add GIT tag in format 'X.Y.Z'."))
+
+        // adding run number as 4th part
+        if (runNumber?.isNumber()) {
+            result += '.' + runNumber
+        }
+
+        // find name part from several sources
+        def pattern1 = ~/((v|v\.)?(\d+(\.\d+){2,3}))/
+        def pattern2 = ~/^[-\s]*(.+)[-\s]*$/
+        def names = [branch] + tags
+        def name = names.stream().map(s -> extractName(s,pattern1, pattern2))
+                .filter(s -> s != null && s.length() > 3).findFirst().orElse('')
+        if (!name.isEmpty()) {
+            result += '-' + name;
+        }
+
+        // add build-part
+        def buildTime = DateTimeFormatter.ofPattern('yyMMddHHmm').format(now)
+        result += '+' + (sha == null ? '' : sha.substring(0, 7) + '-') + buildTime
+        return result.toLowerCase()
+    }
+
+    private static String extractName(String branchOrTagName, Pattern pattern1, Pattern pattern2) {
+        if (branchOrTagName == null || branchOrTagName.isBlank()) {
+            return null
+        }
+        def last = branchOrTagName.lastIndexOf('/')
+        def s = branchOrTagName.substring(last + 1)
+        s = pattern1.matcher(s).replaceAll('')
+        def matcher = pattern2.matcher(s)
+        if (!matcher.find()) {
+            return null;
+        }
+        return matcher.group(1)
+    }
+
+
 
 }
 
-/**
- * Create semver2 compatible string X.Y.Z[.R][-name]+[GIT_SHA-]yyMMddHHmm
- *
- * @param ver version of project (contains X.Y.0-*)
- * @param git a map containing
- *     .branchName (release/Nuuk, feature/CPD-NNNN-*, feature/CPD-NNNN-yyMMddHHmm )
- *     .tags used for tags that can be sha-xxxxx, X.Y.Z-*
- *     .sha
- * @param branch an effective branch name
- * @param runNumber CI run number
- * @return not null string
- */
-private static String prepareSemver(String ver, Map<String, String> git, String branch, String runNumber,
-                                    OffsetDateTime now) {
-    git = git ?: [:] // use empty map by default
-    // find X.Y.Z part from several sources
-    def tags = (git.tags ?: '').tokenize(',')
-    def cases = tags + [branch, ver]
-    def pattern = ~/^(v|v\.)?(\d+(\.\d+){2})($|[-_.].+$)/
-    def result = cases.stream().filter(s -> s != null)
-            .map(pattern::matcher).filter(Matcher::find).map(m -> m.group(2)).findFirst()
-            .orElseThrow(() -> new GradleException("Cannot determine the app version! You need set project version or add GIT tag in format 'X.Y.Z'."))
+project.extensions.create("useJavaFeatures", UseJavaFeaturesExtension)
 
-    // adding run number as 4th part
-    if (runNumber?.isNumber()) {
-        result += '.' + runNumber
-    }
-
-    // find name part from several sources
-    def pattern1 = ~/((v|v\.)?(\d+(\.\d+){2,3}))/
-    def pattern2 = ~/^[-\s]*(.+)[-\s]*$/
-    def names = [branch] + (git.tags ?: '').tokenize(',')
-    def name = names.stream().map(s -> extractName(s,pattern1, pattern2))
-            .filter(s -> s != null && s.length() > 3).findFirst().orElse('')
-    if (!name.isEmpty()) {
-        result += '-' + name;
-    }
-
-    // add build-part
-    def buildTime = DateTimeFormatter.ofPattern('yyMMddHHmm').format(now)
-    result += '+' + (git.sha == null ? '' : git.sha + '-') + buildTime
-    return result.toLowerCase()
-}
-
-private static String extractName(String branchOrTagName, Pattern pattern1, Pattern pattern2) {
-    if (branchOrTagName == null || branchOrTagName.isBlank()) {
-        return null
-    }
-    def last = branchOrTagName.lastIndexOf('/')
-    def s = branchOrTagName.substring(last + 1)
-    s = pattern1.matcher(s).replaceAll('')
-    def matcher = pattern2.matcher(s)
-    if (!matcher.find()) {
-        return null;
-    }
-    return matcher.group(1)
-}

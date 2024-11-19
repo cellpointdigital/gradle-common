@@ -32,6 +32,6 @@ dependencies {
 
 }
 
-configurations {
-    runtime.exclude name: "slf4j-log4j12"
-}
+//configurations {
+//    runtime.exclude name: "slf4j-log4j12"
+//}
