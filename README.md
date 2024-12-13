@@ -37,7 +37,7 @@ It creates *addons* directory that contains last state of "main" branch of "grad
 
 
 2) You must define **ext.addonsPath** variable, and attach .gradle scripts, add plugin "com.gorylenko.gradle-git-properties"
-   into your **root** build.gradle. The root build.gradle may looks like:
+   into your **root** build.gradle. The root build.gradle may look like:
  
 ```groovy
 plugins {
@@ -80,7 +80,7 @@ jobs:
 replace liquibase/build.gradle with these only 2 lines:
 
 ```groovy
-apply from: "${addonsPath}/project_info.gradle"
+apply from: "${addonsPath}/project_info.gradle" // optional
 apply from: "${addonsPath}/liquibase.gradle"
 ```
 
