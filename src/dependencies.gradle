@@ -9,7 +9,7 @@ dependencies {
         def rules = {
             version {
                 strictly("[2.20.0, 3[")
-                prefer("2.20.0")
+                prefer("2.24.2")
             }
         }
         implementation("org.apache.logging.log4j:log4j-core", rules)
@@ -32,6 +32,3 @@ dependencies {
 
 }
 
-//configurations {
-//    runtime.exclude name: "slf4j-log4j12"
-//}
