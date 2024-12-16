@@ -36,20 +36,16 @@ git submodule add --force https://github.com/cellpointmobile/gradle-common.git a
 It creates *addons* directory that contains last state of "main" branch of "gradle-common" repository. 
 
 
-2) You must define **ext.addonsPath** variable, and attach .gradle scripts, add plugin "com.gorylenko.gradle-git-properties"
-   into your **root** build.gradle. The root build.gradle may look like:
+2) You must define **ext.addonsPath** variable, and attach .gradle scripts. The root build.gradle may look like:
  
 ```groovy
 plugins {
   // declare versions of used plugins and attach them into gradle classpath
-  id "com.gorylenko.gradle-git-properties" version "2.4.1" apply false
   id 'com.github.spotbugs' version '5.0.14' apply false // remove if you don`t want to use spotbugs  
 }
 
 ext.addonsPath = "${projectDir}/addons/src"
 apply from: "${addonsPath}/git.gradle"
-apply from: "${addonsPath}/common.gradle"
-apply from: "${addonsPath}/project_info.gradle" // optional
 apply from: "${addonsPath}/compose.gradle" // optional
 ```
 
