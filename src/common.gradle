@@ -145,11 +145,6 @@ abstract class UseJavaFeaturesExtension {
                 .map(pattern::matcher).filter(Matcher::find).map(m -> m.group(2)).findFirst()
                 .orElseThrow(() -> new GradleException("Cannot determine the app version! You need set project version or add GIT tag in format 'X.Y.Z'."))
 
-        // adding run number as 4th part
-        if (runNumber?.isNumber()) {
-            result += '.' + runNumber
-        }
-
         // find name part from several sources
         def pattern1 = ~/((v|v\.)?(\d+(\.\d+){2,3}))/
         def pattern2 = ~/^[-\s]*(.+)[-\s]*$/
@@ -162,7 +157,15 @@ abstract class UseJavaFeaturesExtension {
 
         // add build-part
         def buildTime = DateTimeFormatter.ofPattern('yyMMddHHmm').format(now)
-        result += '+' + (sha == null ? '' : sha.substring(0, 7) + '-') + buildTime
+        def buildPart = ""
+        if (runNumber?.isNumber()) {
+            buildPart += '.' + runNumber
+        }
+        if (sha != null) {
+            buildPart += '.' + sha.substring(0, 7)
+        }
+        result += '+' + (buildPart.isEmpty() ?  '' : buildPart.substring(1) + '-') + buildTime
+
         return result.toLowerCase()
     }
 
