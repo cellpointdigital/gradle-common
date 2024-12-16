@@ -9,7 +9,10 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.regex.*
 
-class UseJavaFeaturesExtension {
+abstract class UseJavaFeaturesExtension {
+
+    @Inject
+    abstract Project getCurrentProject()
 
     JavaVersion javaVersion = JavaVersion.current()
     boolean processJavaResources = true
@@ -20,34 +23,32 @@ class UseJavaFeaturesExtension {
     boolean jacoco = true;
 
     private final now = OffsetDateTime.now(ZoneOffset.UTC)
-    private Project p
+    private String semver
 
-    void applyIfExists(boolean enabled, String name) {
+    private void applyIfExists(boolean enabled, String name) {
         if (enabled) {
-            File overriding = p.file("gradle/${name}.gradle")
+            File overriding = currentProject.file("gradle/${name}.gradle")
             if (overriding.exists()) {
-                p.apply([from: overriding])
+                currentProject.apply([from: overriding])
             } else {
                 // search the file in root dir
-                final String rootDir = p.getRootDir()
-                final File overridingRoot = p.file("${rootDir}/gradle/${name}.gradle")
-                if (p != p.rootProject && overridingRoot.exists()) {
-                    p.apply([from: overridingRoot])
+                final String rootDir = currentProject.getRootDir()
+                final File overridingRoot = currentProject.file("${rootDir}/gradle/${name}.gradle")
+                if (currentProject != currentProject.rootProject && overridingRoot.exists()) {
+                    currentProject.apply([from: overridingRoot])
                 } else {
-                    File addon = p.file("${rootDir}/addons/src/${name}.gradle")
+                    File addon = currentProject.file("${rootDir}/addons/src/${name}.gradle")
                     if (addon.exists()) {
-                        p.apply([from: addon])
+                        currentProject.apply([from: addon])
                     }
                 }
             }
         }
     }
 
+    void configure() {
 
-    void configure(Project p) {
-        this.p = p
-
-        if (!p.plugins.hasPlugin('java')) {
+        if (!currentProject.plugins.hasPlugin('java')) {
             throw new GradleException("useJavaFeatures() can be used in project with 'java' plugin connected.")
         }
 
@@ -57,27 +58,27 @@ class UseJavaFeaturesExtension {
         applyIfExists(spotbugs, 'spotbugs')
         applyIfExists(jacoco, 'jacoco')
 
-        p.compileJava.options.encoding = "UTF-8"
-        p.compileTestJava.options.encoding = "UTF-8"
-        p.java {
+        currentProject.compileJava.options.encoding = "UTF-8"
+        currentProject.compileTestJava.options.encoding = "UTF-8"
+        currentProject.java {
             sourceCompatibility = javaVersion
             targetCompatibility = javaVersion
         }
 
-        if (p.plugins.hasPlugin('org.springframework.boot')) {
+        if (currentProject.plugins.hasPlugin('org.springframework.boot')) {
             // apply dependencies from 'annotationProcessor' configuration
-            p.configurations {
+            currentProject.configurations {
                 compileOnly {
                     extendsFrom annotationProcessor
                 }
             }
 
-            p.bootJar {
+            currentProject.bootJar {
                 archiveFileName = 'server.jar'
             }
         }
 
-        def gitDetails = p.getParent().ext.gitDetails
+        def gitDetails = currentProject.getParent().ext.gitDetails
 
         // calculate effective build version
         String runNumber = ext.has('runNumber') ? ext.get('runNumber') : System.getenv('GITHUB_RUN_NUMBER')
@@ -107,18 +108,18 @@ class UseJavaFeaturesExtension {
             }
         }
 
-        def semver = prepareSemver(p.version, gitDetails.commitId, gitDetails.tags, branchName, runNumber, now)
+        this.semver = prepareSemver(currentProject.version, gitDetails.commitId, gitDetails.tags, branchName, runNumber, now)
         println("The effective version of the application is '$semver'.")
-        ext.buildSemver = semver
+        println("The effective version of the application is '$currentProject'.")
 
         def nowStr = now.toString() // UTC build time example: 2023-10-15T21:19:24.095308270Z
         // replace tokens @build.version@, @build.semver@ and @build.timestamp@
         if (processJavaResources) {
-            p.processResources {
+            currentProject.processResources {
                 filesMatching(['**/*.properties', '**/*.yaml']) {
                     filter(ReplaceTokens, tokens: [
-                            'build.version'  : p.version,
-                            'build.semver'   : semver,
+                            'build.version'  : currentProject.version,
+                            'build.semver'   : this.semver,
                             'build.timestamp': nowStr 
                     ])
                 }
@@ -130,7 +131,7 @@ class UseJavaFeaturesExtension {
      * Create semver2 compatible string X.Y.Z[.R][-name]+[GIT_SHA-]yyMMddHHmm
      *
      * @param ver version of project (contains X.Y.0-*)
-     * @param tags tags in format sha-xxxxx, X.Y.Z-*
+     * @param tags tags in formats: sha-xxxxx, X.Y.Z-*, [v[.]]X.Y.Z-*
      * @param branch an effective branch name (release/Nuuk, feature/CPD-NNNN-*, feature/CPD-NNNN-yyMMddHHmm)
      * @param runNumber CI run number
      * @return not null string
@@ -179,8 +180,6 @@ class UseJavaFeaturesExtension {
         }
         return matcher.group(1)
     }
-
-
 
 }
 
