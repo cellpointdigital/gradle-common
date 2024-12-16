@@ -110,7 +110,6 @@ abstract class UseJavaFeaturesExtension {
 
         this.semver = prepareSemver(currentProject.version, gitDetails.commitId, gitDetails.tags, branchName, runNumber, now)
         println("The effective version of the application is '$semver'.")
-        println("The effective version of the application is '$currentProject'.")
 
         def nowStr = now.toString() // UTC build time example: 2023-10-15T21:19:24.095308270Z
         // replace tokens @build.version@, @build.semver@ and @build.timestamp@
