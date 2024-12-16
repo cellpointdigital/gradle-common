@@ -71,9 +71,22 @@ jobs:
       secrets: inherit
 ```
 
+### for java application project
+
+Add these lines to build.gradle file:
+
+```groovy
+apply from: "${rootProject.ext.addonsPath}/project_info.gradle" // optional 
+apply from: "${addonsPath}/common.gradle"
+
+useJavaFeatures {
+   javaVersion = JavaVersion.VERSION_17
+} configure()
+```
+
 ### for liquibase
 
-replace liquibase/build.gradle with these only 2 lines:
+Replace liquibase/build.gradle with these only 2 lines:
 
 ```groovy
 apply from: "${addonsPath}/project_info.gradle" // optional
