@@ -9,8 +9,8 @@ plugins {
     id 'java'
 }
 
-apply from: "${rootProject.projectDir}/src/dependencies.gradle"
-apply from: "${rootProject.projectDir}/src/jacoco.gradle"
-apply from: "${rootProject.projectDir}/src/repositories.gradle"
-apply from: "${rootProject.projectDir}/src/spotbugs.gradle"
-apply from: "${rootProject.projectDir}/src/test.gradle"
+apply from: "${addonsPath}/common.gradle"
+
+useJavaFeatures {
+} configure()
+
