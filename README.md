@@ -193,9 +193,11 @@ You may use gradle task for that too:
 ```bash
 git submodule deinit --force addons  # (1)
 git rm -f addons   # (2)
+rm -rf .git/modules/addons  # (3)
 ```
 1) removes reference to "addons" submodule from .git/config file and removes content of "addons" directory.
 2) removes "addons" directory from GIT-index.
+3) removes submodule from GIT-modules directory where it is actually stored.
 
 
 ### Remarks
