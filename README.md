@@ -30,7 +30,7 @@ This command will download appropriate GIT repository and place it into "addons"
 1) Attach submodule to your project (from root project directory):
 
 ```bash
-git submodule add --force https://github.com/cellpointmobile/gradle-common.git addons
+git submodule add --force https://github.com/cellpointdigital/gradle-common.git addons
 ```
 
 It creates *addons* directory that contains last state of "main" branch of "gradle-common" repository. 
