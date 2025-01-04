@@ -23,7 +23,6 @@ abstract class UseJavaFeaturesExtension {
     boolean jacoco = true;
 
     private final now = OffsetDateTime.now(ZoneOffset.UTC)
-    private String semver
 
     private void applyIfExists(boolean enabled, String name) {
         if (enabled) {
@@ -108,7 +107,7 @@ abstract class UseJavaFeaturesExtension {
             }
         }
 
-        this.semver = prepareSemver(currentProject.version as String, gitDetails.commitId as String,
+        final String semver = prepareSemver(currentProject.version as String, gitDetails.commitId as String,
                 gitDetails.tags as List<String>, branchName, runNumber, now)
         println("The effective version of the application is '$semver'.")
 
@@ -119,7 +118,7 @@ abstract class UseJavaFeaturesExtension {
                 filesMatching(['**/*.properties', '**/*.yaml']) {
                     filter(ReplaceTokens, tokens: [
                             'build.version'  : currentProject.version,
-                            'build.semver'   : this.semver,
+                            'build.semver'   : semver,
                             'build.timestamp': nowStr 
                     ])
                 }
