@@ -16,11 +16,11 @@ abstract class UseJavaFeaturesExtension {
 
     JavaVersion javaVersion = JavaVersion.current()
     boolean processJavaResources = true
-    boolean repositories = true;
-    boolean dependencies = true;
-    boolean test = true;
-    boolean spotbugs = false;
-    boolean jacoco = true;
+    boolean repositories = true
+    boolean dependencies = true
+    boolean test = true
+    boolean spotbugs = false
+    boolean jacoco = true
 
     private final now = OffsetDateTime.now(ZoneOffset.UTC)
 
@@ -152,7 +152,7 @@ abstract class UseJavaFeaturesExtension {
         def name = names.stream().map(s -> extractName(s,pattern1, pattern2))
                 .filter(s -> s != null && s.length() > 3).findFirst().orElse('')
         if (!name.isEmpty()) {
-            result += '-' + name;
+            result += '-' + name
         }
 
         // add build-part
@@ -178,7 +178,7 @@ abstract class UseJavaFeaturesExtension {
         s = pattern1.matcher(s).replaceAll('')
         def matcher = pattern2.matcher(s)
         if (!matcher.find()) {
-            return null;
+            return null
         }
         return matcher.group(1)
     }
