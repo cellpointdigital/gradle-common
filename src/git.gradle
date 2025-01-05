@@ -38,6 +38,7 @@ abstract class GitInfoValueSource implements ValueSource<GitInfo, None> {
         execOperations.exec {
             it.commandLine command
             it.standardOutput = output
+            ignoreExitValue = true
         }
         return (new String(output.toByteArray())).trim()
     }
