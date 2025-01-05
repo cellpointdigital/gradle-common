@@ -44,7 +44,7 @@ plugins {
   id 'com.github.spotbugs' version '5.0.14' apply false // remove if you don`t want to use spotbugs  
 }
 
-ext.addonsPath = "${projectDir}/addons/src"
+ext['addonsPath'] = "${projectDir}/addons/src"
 apply from: "${addonsPath}/git.gradle"
 apply from: "${addonsPath}/compose.gradle" // optional
 ```
@@ -76,7 +76,7 @@ jobs:
 Add these lines to build.gradle file:
 
 ```groovy
-apply from: "${rootProject.ext.addonsPath}/project_info.gradle" // optional 
+apply from: "${addonsPath}/project_info.gradle" // optional 
 apply from: "${addonsPath}/common.gradle"
 
 useJavaFeatures {
