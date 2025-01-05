@@ -15,18 +15,18 @@ repositories {
 
     maven {
         credentials {
-            username cpmArtifactoryReadUsername
-            password cpmArtifactoryReadPassword
+            username = cpmArtifactoryReadUsername
+            password = cpmArtifactoryReadPassword
         }
-        url "https://repo.t.cpm.ninja/artifactory/libs-release"
+        url = "https://repo.t.cpm.ninja/artifactory/libs-release"
     }
 
     maven {
         credentials {
-            username cpmArtifactoryReadUsername
-            password cpmArtifactoryReadPassword
+            username = cpmArtifactoryReadUsername
+            password = cpmArtifactoryReadPassword
         }
-        url "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
+        url = "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
     }
 
     def ghPackageReadUsername = System.getenv("GITHUB_USERNAME")
@@ -36,11 +36,11 @@ repositories {
             // https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub,
             // GITHUB_USERNAME = 'userX' # Your GitHub usernames
             // PACKAGE_REGISTRY_READ_TOKEN = 'ghp_xxxxx' # Your GitHub Personal Access Token (PAT) with "read:packages" permissions
-            url "https://maven.pkg.github.com/cellpointdigital"
             credentials {
                 username = ghPackageReadUsername
                 password = ghPackageToken
             }
+            url = "https://maven.pkg.github.com/cellpointdigital"
         }
     }
 
