@@ -216,3 +216,31 @@ Show last commit in "addons" submodule:
 ```bash
 pushd addons; git show --summary; popd
 ```
+
+## Scripts development
+
+### Try to test the scripts
+
+In the `test` directory there is a testing project that uses these gradle scripts.
+Enter the `test` directory and run the following command to test the scripts:
+
+```bash
+cd test
+./gradlew build --warning-mode=all
+```
+
+This command will check *slightly* that the scripts are working correctly.
+
+You can debug gradle scripts with the following command:
+
+```bash
+./gradlew build --no-daemon -Dorg.gradle.debug=true
+```
+
+
+### Edit the scripts
+
+In order to resolve all gradle classes while you are editing the scripts, you need to add the `gradle-api-8.12.jar` to 
+the External Libraries of IntelliJ-IDEA project. For that I just bind the jar file to the project 
+from LOCAL gradle cache - `$PWD/.gradle/caches/8.12/generated-gradle-jars/gradle-api-8.12.jar`. 
+
