@@ -4,5 +4,5 @@
  *
  */
 
-apply from: "${rootProject.projectDir}/src/liquibase.gradle"
+apply from: "${addonsPath}/liquibase.gradle"
 

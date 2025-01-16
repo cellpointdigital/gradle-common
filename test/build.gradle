@@ -9,9 +9,9 @@ plugins {
     id 'com.github.spotbugs' version '5.0.14' apply false
 }
 
-ext.addonsPath = "${projectDir}/src"
-apply from: "${ext.addonsPath}/git.gradle"
-apply from: "${ext.addonsPath}/project_info.gradle" // optional
-apply from: "${ext.addonsPath}/compose.gradle" // optional
+ext['addonsPath'] = "${projectDir}/../src"
+apply from: "${addonsPath}/git.gradle"
+apply from: "${addonsPath}/project_info.gradle" // optional
+apply from: "${addonsPath}/compose.gradle" // optional
 
 
