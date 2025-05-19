@@ -8,11 +8,32 @@ repositories {
     mavenLocal()
     mavenCentral()
 
+    String ghPackageReadUsername = System.getenv('GITHUB_USERNAME') ?: findProperty('ghArtifactoryReadUsername') ?: ''
+    String ghPackageReadToken = System.getenv('PACKAGE_REGISTRY_READ_TOKEN') ?: findProperty('ghArtifactoryReadToken') ?: ''
+    String ghUrl = 'https://maven.pkg.github.com/cellpointdigital/artifactory'
+    if (ghPackageReadUsername == '' || ghPackageReadToken == '') {
+        System.err.println('Environment variables GITHUB_USERNAME and PACKAGE_REGISTRY_READ_TOKEN are not set. ' +
+                'Dependencies from GitHub "' + ghUrl + '" will not be available!')
+    } else {
+        maven {
+            // https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub,
+            // GITHUB_USERNAME = 'userX' # Your GitHub usernames
+            // PACKAGE_REGISTRY_READ_TOKEN = 'ghp_xxxxx' # Your GitHub Personal Access Token (PAT) with "read:packages" permissions
+            url = ghUrl
+            credentials {
+                username = ghPackageReadUsername
+                password = ghPackageReadToken
+            }
+        }
+    }
+
+
     String cpmArtifactoryReadUsername = System.getenv("CPM_ARTIFACTORY_READ_USERNAME") ?:
             findProperty('cpmArtifactoryReadUsername') ?: 'cellpointmobileread'
     String cpmArtifactoryReadPassword = System.getenv("CPM_ARTIFACTORY_READ_PASSWORD") ?:
             findProperty('cpmArtifactoryReadPassword') ?: ''
 
+    // Deprecated
     maven {
         credentials {
             username = cpmArtifactoryReadUsername
@@ -21,6 +42,7 @@ repositories {
         url = "https://repo.t.cpm.ninja/artifactory/libs-release"
     }
 
+    // Deprecated
     maven {
         credentials {
             username = cpmArtifactoryReadUsername
@@ -29,19 +51,5 @@ repositories {
         url = "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
     }
 
-    def ghPackageReadUsername = System.getenv("GITHUB_USERNAME")
-    def ghPackageToken = System.getenv("PACKAGE_REGISTRY_READ_TOKEN")
-    if (ghPackageReadUsername != null || ghPackageToken != null) {
-        maven {
-            // https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub,
-            // GITHUB_USERNAME = 'userX' # Your GitHub usernames
-            // PACKAGE_REGISTRY_READ_TOKEN = 'ghp_xxxxx' # Your GitHub Personal Access Token (PAT) with "read:packages" permissions
-            credentials {
-                username = ghPackageReadUsername
-                password = ghPackageToken
-            }
-            url = "https://maven.pkg.github.com/cellpointdigital"
-        }
-    }
 
 }
