@@ -30,6 +30,7 @@ abstract class GitInfoValueSource implements ValueSource<GitInfo, None> {
     private static final String DIRTY_MARK = "**DIRTY**"
     private GitInfo info
 
+    // most likely, this function is resolved by `providers.of(GitInfoValueSource.class)`
     @Inject
     abstract ExecOperations getExecOperations()
 
@@ -72,18 +73,11 @@ println "  dirty: ${gitInfo.dirty}"
 // expose this value globally
 ext.gitDetails = gitInfo
 
-abstract class UpdateAddonsTask extends DefaultTask {
-    @Inject
-    abstract ExecOperations execOperations
-
-    @TaskAction
-    void doTaskAction() {
-        execOperations.commandLine('git', 'submodule', 'update', '-f', '--remote', 'addons')
-        execOperations.commandLine('git', 'add', 'addons')
-    }
-}
-
-tasks.register('updateAddons', UpdateAddonsTask) {
+tasks.register('updateAddons', Task) {
     group = 'git'
     description = 'Update "addons" submodule from remote origin server.'
+    doLast {
+        "git submodule update -f --remote addons".execute()
+        "git add addons".execute()
+    }
 }
