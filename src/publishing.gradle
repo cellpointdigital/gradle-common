@@ -11,11 +11,6 @@ java {
     withSourcesJar()
 }
 
-String cpmArtifactoryWriteUsername = System.getenv("CPM_ARTIFACTORY_WRITE_USERNAME") ?:
-        findProperty('cpmArtifactoryWriteUsername') ?: 'github'
-String cpmArtifactoryWritePassword = System.getenv("CPM_ARTIFACTORY_WRITE_PASSWORD") ?:
-        findProperty('cpmArtifactoryWritePassword') ?: 'jenkinspasswordplaceholder' // This is just a placeholder
-
 publishing {
 
     // destination repositories
@@ -23,15 +18,17 @@ publishing {
         mavenLocal() // to create 'publish___PublicationToMavenLocalRepository' tasks
 
         maven {
-            name = 'CPM' // to create 'publish___PublicationToCPMRepository' tasks
+            // Creates 'publish___PublicationToGHCPDRepository' task to publish artifacts into
+            //   `cellpointdigital/com.cellpointdigital` repository.
+            // This task is mentioned as an example, most likely you need to configure publishing at your own discretion.
+            name = 'GHCPD'
+            url = "https://maven.pkg.github.com/cellpointdigital/com.cellpointdigital"
             credentials {
-                username cpmArtifactoryWriteUsername
-                password cpmArtifactoryWritePassword
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("PACKAGE_REGISTRY_WRITE_TOKEN")
             }
-            def releasesRepoUrl = "https://repo.t.cpm.ninja/artifactory/libs-release-local"
-            def snapshotsRepoUrl = "https://repo.t.cpm.ninja/artifactory/libs-snapshot-local"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
+
     }
 
 }
