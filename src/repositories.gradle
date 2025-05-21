@@ -12,7 +12,7 @@ repositories {
     String ghPackageReadToken = System.getenv('PACKAGE_REGISTRY_READ_TOKEN') ?: findProperty('ghArtifactoryReadToken') ?: ''
     String ghUrl = 'https://maven.pkg.github.com/cellpointdigital/artifactory'
     if (ghPackageReadUsername == '' || ghPackageReadToken == '') {
-        System.err.println('Environment variables GITHUB_USERNAME and PACKAGE_REGISTRY_READ_TOKEN are not set. ' +
+        System.err.println('WARNING: Environment variables GITHUB_USERNAME and PACKAGE_REGISTRY_READ_TOKEN are not set. ' +
                 'Dependencies from GitHub "' + ghUrl + '" will not be available!')
     } else {
         maven {
@@ -28,28 +28,29 @@ repositories {
     }
 
 
+    // https://repo.t.cpm.ninja/artifactory is deprecated
     String cpmArtifactoryReadUsername = System.getenv("CPM_ARTIFACTORY_READ_USERNAME") ?:
             findProperty('cpmArtifactoryReadUsername') ?: 'cellpointmobileread'
     String cpmArtifactoryReadPassword = System.getenv("CPM_ARTIFACTORY_READ_PASSWORD") ?:
             findProperty('cpmArtifactoryReadPassword') ?: ''
-
-    // Deprecated
-    maven {
-        credentials {
-            username = cpmArtifactoryReadUsername
-            password = cpmArtifactoryReadPassword
+    if (cpmArtifactoryReadUsername == '' || cpmArtifactoryReadPassword == '') {
+        System.out.println('Username or password is not defined for "https://repo.t.cpm.ninja/artifactory". ' +
+                'Dependencies from it will not be available!')
+    } else {
+        maven {
+            credentials {
+                username = cpmArtifactoryReadUsername
+                password = cpmArtifactoryReadPassword
+            }
+            url = "https://repo.t.cpm.ninja/artifactory/libs-release"
         }
-        url = "https://repo.t.cpm.ninja/artifactory/libs-release"
-    }
-
-    // Deprecated
-    maven {
-        credentials {
-            username = cpmArtifactoryReadUsername
-            password = cpmArtifactoryReadPassword
+        maven {
+            credentials {
+                username = cpmArtifactoryReadUsername
+                password = cpmArtifactoryReadPassword
+            }
+            url = "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
         }
-        url = "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
     }
-
 
 }
