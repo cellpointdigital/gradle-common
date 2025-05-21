@@ -49,7 +49,12 @@ apply from: "${addonsPath}/git.gradle"
 apply from: "${addonsPath}/compose.gradle" // optional
 ```
 
-3) assign properties with credentials in gradle.properties file:
+3) assign credentials to access CPD maven repositories:  
+
+ 3.1) for GitHub see instruction https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub
+
+ 3.2) for `repo.t.cpm.ninja/artifactory` (deprecated) add cpmArtifactoryReadPassword in gradle.properties or 
+   define CPM_ARTIFACTORY_READ_PASSWORD environment variable:    
 
 ```properties
 cpmArtifactoryReadPassword=xxxxxxxxxxx
@@ -152,14 +157,11 @@ Environment variables take precedence over properties.
 
 Used properties and environment variables:
 
-| property | env variable | descrition                                                                                       | default                                             |
-|-|-|-|-|
-|cpmArtifactoryReadUsername|CPM_ARTIFACTORY_READ_USERNAME| username for readonly access to common maven repository.| 'cellpointmobileread'                               | 
-|cpmArtifactoryReadPassword|CPM_ARTIFACTORY_READ_PASSWORD| password for readonly access to common maven repository.| ''                                                  |
-|cpmArtifactoryWriteUsername|CPM_ARTIFACTORY_WRITE_USERNAME| username for write access to common maven repository.| 'github'                                            |
-|cpmArtifactoryWritePassword|CPM_ARTIFACTORY_WRITE_PASSWORD| password for write access to common maven repository. <br/> This password usually assigned by CI | 'jenkinspasswordplaceholder' used as a placeholder |   
-
-
+| env variable | descrition                                                                       |
+|-|----------------------------------------------------------------------------------|
+|GITHUB_USERNAME| GitHub username, it is assigned by developers locally or by CI                   |
+|PACKAGE_REGISTRY_READ_TOKEN| classic GH token with 'packages:read' permission, assigned by developers or CI   |   
+|PACKAGE_REGISTRY_WRITE_TOKEN| classic GH token with 'packages:write' permission, it is assigned by CI usually  |
 
 ## working with submodule
 
