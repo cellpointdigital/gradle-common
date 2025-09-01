@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Cellpoint Digital
  * www.cellpointdigital.com
  *
- * Exposes tasks for working with local docker-compose
+ * Exposes tasks for working with local docker compose plugin (docker-compose)
  */
 
 tasks.register('up', Exec) {
@@ -42,11 +42,23 @@ private static String getComposeProjectName(Project rootProject) {
     return rootProject.name.substring(rootProject.name.lastIndexOf('.') + 1)
 }
 
+
+private static List<String> dockerComposeRunCommand() {
+    try {
+        def code = 'docker compose version'.execute().waitFor()
+        if (code == 0) {
+            return ['docker', 'compose']
+        }
+    } catch (Throwable ignored) {}
+    return ['docker-compose']
+}
+
+
 private static void runDockerCompose(Exec exec, List<String> cmd) {
     def rootProject = exec.project.rootProject
     exec.workingDir(rootProject.file('run'))
     def composeProjectName = getComposeProjectName(rootProject)
-    exec.commandLine(['docker-compose', '-p', composeProjectName, '-f', 'docker-compose.yml'] + cmd)
+    exec.commandLine(dockerComposeRunCommand() + [ '-p', composeProjectName, '-f', 'docker-compose.yml'] + cmd)
 }
 
 private static void dependsOnAllExisted(Task task, String taskName) {
