@@ -5,71 +5,93 @@
  * Exposes tasks for working with local docker compose plugin (docker-compose)
  */
 
-tasks.register('up', Exec) {
+abstract class ComposeExec extends DefaultTask {
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @Internal
+    String composeProjectName
+    @Internal
+    List<String> composeCommand
+    @Internal
+    String dockerComposeFile = 'docker-compose.yml'
+    @Internal
+    Directory runSubDirectory;
+
+    private static List<String> dockerComposeCommand
+
+    @Override
+    Task configure(Closure closure) {
+        composeProjectName = obtainComposeProjectName()
+        runSubDirectory = project.rootProject.layout.projectDirectory.dir('run')
+        return super.configure(closure)
+    }
+    
+    @TaskAction
+    void executeCompose() {
+        def cmd = obtainDockerComposeCommand() + [ '-p', composeProjectName, '-f', dockerComposeFile] + composeCommand
+        execOperations.exec {
+            it.workingDir(runSubDirectory)
+            it.commandLine(cmd)
+        }
+    }
+
+    List<String> obtainDockerComposeCommand() {
+        if (dockerComposeCommand == null) {
+            int exitValue = execOperations.exec { it.commandLine('docker', 'compose', 'version') }.getExitValue()
+            dockerComposeCommand = exitValue == 0 ? ['docker', 'compose'] : ['docker-compose']
+        }
+        return dockerComposeCommand;
+    }
+
+    // get name of the docker-compose project from ".env" file or from root project name.
+    private String obtainComposeProjectName() {
+        def envFile = project.rootProject.layout.projectDirectory.file("run/.env").getAsFile()
+        if (envFile.canRead()) {
+            for (String line : envFile.readLines()) {
+                def (key, value) = line.tokenize('=')
+                if (key != null && value != null && key.trim() == 'COMPOSE_PROJECT_NAME') {
+                    return value
+                }
+            }
+        }
+        def name = project.rootProject.name // usually name is 'com.cellpointdigital.<project_name>'
+        return name.substring(name.lastIndexOf('.') + 1)
+    }
+
+    void dependsOnAllExisted(String taskName) {
+        def containers = project.rootProject.allprojects.tasks
+        def existed = containers.flatten().findAll { it.name == taskName }
+        println("Set '${name}' task to be depended on ${existed}")
+        dependsOn(existed)
+    }
+
+    void dependsOnIfRequested(String... checked) {
+        def taskNames = project.gradle.startParameter.taskNames
+        checked.findAll { taskNames.contains(it) }.forEach { dependsOnAllExisted(it) }
+    }
+}
+
+tasks.register('up', ComposeExec) {
     group = 'docker-compose'
     description = 'Builds docker containers and starts up it in docker-compose project.'
-    dependsOnIfRequested(it, 'clean', 'down')
-    dependsOnAllExisted(it, 'docker')
-    runDockerCompose(it, ['up', '-d'])
+    dependsOnIfRequested('clean', 'down')
+    dependsOnAllExisted('docker')
+    composeCommand = ['up', '-d']
 }
 
-tasks.register('down', Exec) {
+tasks.register('down', ComposeExec) {
     group = 'docker-compose'
     description = 'Stops docker-compose project.'
-    runDockerCompose(it, ['down']);
+    composeCommand = ['down']
 }
 
-tasks.register('restart', Exec) {
+tasks.register('restart', ComposeExec) {
     group = 'docker-compose'
     description = 'Just restarts docker-compose project.'
     dependsOn('down')
-    dependsOnIfRequested(it, 'clean', 'build', 'docker')
-    runDockerCompose(it, ['up', '-d']);
-}
-
-
-// get name of the docker-compose project from ".env" file or from root project name.
-private static String getComposeProjectName(Project rootProject) {
-    def envFile = rootProject.file("run/.env")
-    if (envFile.canRead()) {
-        for (String line : envFile.readLines()) {
-            def (key, value) = line.tokenize('=')
-            if (key != null && value != null && key.trim() == 'COMPOSE_PROJECT_NAME') {
-                return value
-            }
-        }
-    }
-    return rootProject.name.substring(rootProject.name.lastIndexOf('.') + 1)
-}
-
-
-private static List<String> dockerComposeRunCommand() {
-    try {
-        def code = 'docker compose version'.execute().waitFor()
-        if (code == 0) {
-            return ['docker', 'compose']
-        }
-    } catch (Throwable ignored) {}
-    return ['docker-compose']
-}
-
-
-private static void runDockerCompose(Exec exec, List<String> cmd) {
-    def rootProject = exec.project.rootProject
-    exec.workingDir(rootProject.file('run'))
-    def composeProjectName = getComposeProjectName(rootProject)
-    exec.commandLine(dockerComposeRunCommand() + [ '-p', composeProjectName, '-f', 'docker-compose.yml'] + cmd)
-}
-
-private static void dependsOnAllExisted(Task task, String taskName) {
-    def containers = task.project.rootProject.allprojects.tasks
-    def existed = containers.flatten().findAll { it.name == taskName }
-    println("Set '${task.name}' task to be depended on ${existed}")
-    task.dependsOn(existed)
-}
-
-private static void dependsOnIfRequested(Task task, String... checked) {
-    def taskNames = task.project.gradle.startParameter.taskNames
-    checked.findAll { taskNames.contains(it) }.forEach { dependsOnAllExisted(task, it) }
+    dependsOnIfRequested('clean', 'build', 'docker')
+    composeCommand = ['up', '-d']
 }
 
