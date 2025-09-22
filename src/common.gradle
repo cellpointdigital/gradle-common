@@ -112,13 +112,14 @@ abstract class UseJavaFeaturesExtension {
                 gitDetails.tags as List<String>, branchName, runNumber, now)
         println("The effective version of the application is '$semver'.")
 
+        def currentProjectVersion = currentProject.version;
         def nowStr = now.toString() // UTC build time example: 2023-10-15T21:19:24.095308270Z
         // replace tokens @build.version@, @build.semver@ and @build.timestamp@
         if (processJavaResources) {
             currentProject.processResources {
                 filesMatching(['**/*.properties', '**/*.yaml']) {
                     filter(ReplaceTokens, tokens: [
-                            'build.version'  : currentProject.version,
+                            'build.version'  : currentProjectVersion,
                             'build.semver'   : semver,
                             'build.timestamp': nowStr 
                     ])

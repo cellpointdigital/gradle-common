@@ -27,30 +27,4 @@ repositories {
         }
     }
 
-
-    // https://repo.t.cpm.ninja/artifactory is deprecated
-    String cpmArtifactoryReadUsername = System.getenv("CPM_ARTIFACTORY_READ_USERNAME") ?:
-            findProperty('cpmArtifactoryReadUsername') ?: 'cellpointmobileread'
-    String cpmArtifactoryReadPassword = System.getenv("CPM_ARTIFACTORY_READ_PASSWORD") ?:
-            findProperty('cpmArtifactoryReadPassword') ?: ''
-    if (cpmArtifactoryReadUsername == '' || cpmArtifactoryReadPassword == '') {
-        System.out.println('Username or password is not defined for "https://repo.t.cpm.ninja/artifactory". ' +
-                'Dependencies from it will not be available!')
-    } else {
-        maven {
-            credentials {
-                username = cpmArtifactoryReadUsername
-                password = cpmArtifactoryReadPassword
-            }
-            url = "https://repo.t.cpm.ninja/artifactory/libs-release"
-        }
-        maven {
-            credentials {
-                username = cpmArtifactoryReadUsername
-                password = cpmArtifactoryReadPassword
-            }
-            url = "https://repo.t.cpm.ninja/artifactory/libs-snapshot"
-        }
-    }
-
 }
