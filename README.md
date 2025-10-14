@@ -6,8 +6,8 @@ Contains common files which support your Gradle build process.
 
 To reduce configuration efforts and automatically update build scripts of many java-projects. 
 
-It supposes that you attach the repository to your project as submodule, and then you will be able to 
-use .gradle files directly from 'src' directory.
+It supposes that you attach the repository to your project as a submodule, and then you will be able to 
+use .gradle files directly from the 'src' directory.
 
 Current Gradle project and appropriate 'build.gradle' files are used for testing purposes here. 
 Do not use them in your project.   
@@ -20,14 +20,14 @@ If the build cannot find gradle files from "addons" directory, you need to run t
 git submodule update --init
 ```
 
-This command will download appropriate GIT repository and place it into "addons" directory.
+This command will download the appropriate GIT repository and place it into the "addons" directory.
 
 
 ## How to configure your project for using this submodule
 
 ### for all project types
 
-1) Attach submodule to your project (from root project directory):
+1) Attach the submodule to your project (from the root project directory):
 
 ```bash
 git submodule add --force https://github.com/cellpointdigital/gradle-common.git addons
@@ -51,14 +51,8 @@ apply from: "${addonsPath}/compose.gradle" // optional
 
 3) assign credentials to access CPD maven repositories:  
 
- 3.1) for GitHub see instruction https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub
+  To access to GitHub Artefactory, see instruction https://cellpointdigital.atlassian.net/wiki/spaces/CEA/pages/18097274885/GitHub
 
- 3.2) for `repo.t.cpm.ninja/artifactory` (deprecated) add cpmArtifactoryReadPassword in gradle.properties or 
-   define CPM_ARTIFACTORY_READ_PASSWORD environment variable:    
-
-```properties
-cpmArtifactoryReadPassword=xxxxxxxxxxx
-```
 
 4) If you use *cellpointdigital/github-reusable-workflows/.github/workflows/gradle-build.yml@main* common reusable flow,
   please add **checkout_submodules: 'true'** to its configuration, example:
@@ -110,8 +104,8 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 test {
@@ -127,7 +121,6 @@ apply(from: rootProject.file('addons/jacoco.gradle'))
 apply(from: rootProject.file('addons/publishing.gradle'))
 
 publishing {
-
     // getting the name for the maven artifact and publishing tasks:
     def projName = project.name.substring(project.name.lastIndexOf('.') + 1)
     def forTaskName = projName.replace("-","").toUpperCase()
@@ -140,10 +133,6 @@ publishing {
         from components.java
     }
 
-}
-
-dependencies {
-    // any
 }
 ```
 
@@ -169,7 +158,7 @@ See:
 https://git-scm.com/book/en/v2/Git-Tools-Submodules
 https://stackoverflow.com/questions/1777854/how-can-i-specify-a-branch-tag-when-adding-a-git-submodule
 
-- If you have deleted or changed content of "addons" directory, you can restore its state with the command:
+- If you have deleted or changed the content of the "addons" directory, you can restore its state with the command:
 
 ```bash
 git submodule update -f addons 
@@ -214,7 +203,7 @@ Show indexed submodule directories:
 git ls-files --stage | grep 160000
 ```
 
-Show last commit in "addons" submodule:
+Show the last commit in "addons" submodule:
 ```bash
 pushd addons; git show --summary; popd
 ```
@@ -223,7 +212,7 @@ pushd addons; git show --summary; popd
 
 ### Try to test the scripts
 
-In the `test` directory there is a testing project that uses these gradle scripts.
+In the `test` directory there is a testing project that uses these Gradle scripts.
 Enter the `test` directory and run the following command to test the scripts:
 
 ```bash
@@ -242,7 +231,7 @@ You can debug gradle scripts with the following command:
 
 ### Edit the scripts
 
-In order to resolve all gradle classes while you are editing the scripts, you need to add the `gradle-api-8.12.jar` to 
+In order to resolve all gradle classes while you are editing the scripts, you need to add the `gradle-api-8.14.jar` to 
 the External Libraries of IntelliJ-IDEA project. For that I just bind the jar file to the project 
-from LOCAL gradle cache - `$PWD/.gradle/caches/8.12/generated-gradle-jars/gradle-api-8.12.jar`. 
+from LOCAL gradle cache - `$PWD/.gradle/caches/8.12/generated-gradle-jars/gradle-api-8.14.jar`. 
 
