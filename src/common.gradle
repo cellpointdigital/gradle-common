@@ -77,7 +77,7 @@ abstract class UseJavaFeaturesExtension {
             }
         }
 
-        def gitDetails = currentProject.getParent().ext.gitDetails
+        def gitDetails = currentProject.getRootProject().ext.gitDetails
 
         // calculate effective build version
         String runNumber = ext.has('runNumber') ? ext.get('runNumber') : System.getenv('GITHUB_RUN_NUMBER')
