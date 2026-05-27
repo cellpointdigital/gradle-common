@@ -17,6 +17,8 @@ abstract class ComposeExec extends DefaultTask {
     @Internal
     String dockerComposeFile = 'docker-compose.yml'
     @Internal
+    String dockerComposeOverrideFile = 'docker-compose.override.yml'
+    @Internal
     Directory runSubDirectory;
 
     private static List<String> dockerComposeCommand
@@ -27,10 +29,21 @@ abstract class ComposeExec extends DefaultTask {
         runSubDirectory = project.rootProject.layout.projectDirectory.dir('run')
         return super.configure(closure)
     }
-    
+
     @TaskAction
     void executeCompose() {
-        def cmd = obtainDockerComposeCommand() + [ '-p', composeProjectName, '-f', dockerComposeFile] + composeCommand
+        def cmd = obtainDockerComposeCommand() + ['-p', composeProjectName, '-f', dockerComposeFile]
+
+        // Keep compatibility with Docker Compose defaults while still supporting explicit -f usage.
+        def overrideFile = runSubDirectory.file(dockerComposeOverrideFile).getAsFile()
+        def overrideEnabled = overrideFile.canRead()
+        if (overrideEnabled) {
+            cmd += ['-f', dockerComposeOverrideFile]
+        }
+
+        println("Compose override '${dockerComposeOverrideFile}' detected: ${overrideEnabled}")
+
+        cmd += composeCommand
         execOperations.exec {
             it.workingDir(runSubDirectory)
             it.commandLine(cmd)
