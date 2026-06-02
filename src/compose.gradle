@@ -41,7 +41,9 @@ abstract class ComposeExec extends DefaultTask {
             cmd += ['-f', dockerComposeOverrideFile]
         }
 
-        println("Compose override '${dockerComposeOverrideFile}' detected: ${overrideEnabled}")
+        if (overrideEnabled) {
+            println("Compose override '${dockerComposeOverrideFile}' detected: true")
+        }
 
         cmd += composeCommand
         execOperations.exec {
