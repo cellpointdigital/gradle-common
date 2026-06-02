@@ -36,7 +36,7 @@ abstract class ComposeExec extends DefaultTask {
 
         // Keep compatibility with Docker Compose defaults while still supporting explicit -f usage.
         def overrideFile = runSubDirectory.file(dockerComposeOverrideFile).getAsFile()
-        def overrideEnabled = overrideFile.canRead()
+        def overrideEnabled = overrideFile.isFile() && overrideFile.canRead()
         if (overrideEnabled) {
             cmd += ['-f', dockerComposeOverrideFile]
         }
