@@ -24,5 +24,18 @@ dependencies {
         }
     }
 
+    // gradle usually select "-android" version of guava library
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "com.google.guava" &&
+                    requested.name == "guava" &&
+                    requested.version?.endsWith("-android")) {
+
+                useVersion(requested.version.replace("-android", "-jre"))
+                because("Use JRE variant of Guava instead of Android variant")
+            }
+        }
+    }
+
 }
 
