@@ -9,7 +9,7 @@ dependencies {
         // Enforce a minimum Log4j 2.x version to prevent vulnerable transitive versions.
         def rules = {
             version {
-                strictly("[2.20.0, 3[") // there is a catastrophic bug in version prior 2.20.0
+                strictly("[2.20.0, 3[") // there is a catastrophic bug in versions prior to 2.20.0
                 prefer("2.26.1")
             }
         }
