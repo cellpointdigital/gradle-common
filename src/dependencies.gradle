@@ -6,22 +6,16 @@
 
 dependencies {
     constraints {
+        // Enforce a minimum Log4j 2.x version to prevent vulnerable transitive versions.
         def rules = {
             version {
-                strictly("[2.20.0, 3[")
-                prefer("2.24.2")
+                strictly("[2.20.0, 3[") // there is a catastrophic bug in version prior 2.20.0
+                prefer("2.26.1")
             }
         }
         implementation("org.apache.logging.log4j:log4j-core", rules)
         implementation("org.apache.logging.log4j:log4j-api", rules)
         implementation("org.apache.logging.log4j:log4j-to-slf4j", rules)
-
-        def rulesGuava = {
-            version {
-                strictly("32.1.2-jre")
-            }
-        }
-        implementation("com.google.guava:guava", rulesGuava)
     }
 
     modules {
