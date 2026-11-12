@@ -7,10 +7,8 @@
 
 plugins {
     id 'java'
+    id 'com.cellpointdigital.gradle-common'
 }
 
-apply from: "${addonsPath}/common.gradle"
-
-useJavaFeatures() {
+useJavaFeatures {
 } configure()
-

@@ -4,5 +4,7 @@
  *
  */
 
-apply from: "${addonsPath}/liquibase.gradle"
-
+plugins {
+    id 'com.cellpointdigital.gradle-liquibase'
+    id 'com.cellpointdigital.gradle-project-info'
+}

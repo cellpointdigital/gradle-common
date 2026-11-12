@@ -1,3 +1,7 @@
+pluginManagement {
+    includeBuild('..')
+}
+
 include ':java', ':liquibase'
 
 rootProject.name = 'com.cellpointdigital.gradle-common'
