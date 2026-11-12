@@ -18,7 +18,7 @@ dependencies {
 
         def rulesGuava = {
             version {
-                strictly("32.1.2-jre")
+                strictly("33.8.0-jre")
             }
         }
         implementation("com.google.guava:guava", rulesGuava)
