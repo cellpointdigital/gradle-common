@@ -79,7 +79,7 @@ tasks.register('updateAddons', Task) {
     doLast {
         [
             'git -C addons fetch origin',
-            'git -C addons checkout -B main origin/main',
+            'git -C addons checkout -f -B main origin/main',
             'git -C addons reset --hard origin/main',
             'git -C addons clean -fd',
             'git add addons'
