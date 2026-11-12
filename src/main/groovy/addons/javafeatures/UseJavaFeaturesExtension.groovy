@@ -3,11 +3,20 @@
  * www.cellpointdigital.com
  *
  */
-import org.apache.tools.ant.filters.ReplaceTokens
+package addons.javafeatures
 
-import java.time.*
+import addons.core.AddonsPath
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.GradleException
+import org.gradle.api.JavaVersion
+import org.gradle.api.Project
+
+import javax.inject.Inject
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.regex.*
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 abstract class UseJavaFeaturesExtension {
 
@@ -36,7 +45,7 @@ abstract class UseJavaFeaturesExtension {
                 if (currentProject != currentProject.rootProject && overridingRoot.exists()) {
                     currentProject.apply([from: overridingRoot])
                 } else {
-                    File addon = currentProject.file("${rootDir}/addons/src/${name}.gradle")
+                    File addon = currentProject.file("${AddonsPath.resolve(currentProject)}/${name}.gradle")
                     if (addon.exists()) {
                         currentProject.apply([from: addon])
                     }
@@ -185,6 +194,3 @@ abstract class UseJavaFeaturesExtension {
     }
 
 }
-
-project.extensions.create("useJavaFeatures", UseJavaFeaturesExtension)
-

@@ -5,13 +5,10 @@
  */
 
 plugins {
+    id 'com.cellpointdigital.gradle-common'
+    id 'com.cellpointdigital.gradle-git'
+    id 'com.cellpointdigital.gradle-compose'
+    id 'com.cellpointdigital.gradle-project-info'
     // declare versions of used plugins and attach them into gradle classpath
     id 'com.github.spotbugs' version '5.0.14' apply false
 }
-
-ext['addonsPath'] = "${projectDir}/../src"
-apply from: "${addonsPath}/git.gradle"
-apply from: "${addonsPath}/project_info.gradle" // optional
-apply from: "${addonsPath}/compose.gradle" // optional
-
-

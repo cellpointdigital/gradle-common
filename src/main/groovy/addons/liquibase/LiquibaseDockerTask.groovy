@@ -3,6 +3,16 @@
  * www.cellpointdigital.com
  *
  */
+package addons.liquibase
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.Task
+import org.gradle.api.file.Directory
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
 
 /**
  * Configure liquibase docker task with update checking
@@ -61,26 +71,4 @@ abstract class LiquibaseDockerTask extends DefaultTask {
         return super.configure(closure)
     }
 
-}
-
-tasks.register('dockerPrepare', Copy) {
-    from("src/main/docker/Dockerfile")
-
-    from("src/main/sh/") {
-        into "app/scripts"
-    }
-
-    from("src/main/resources/") {
-        into "app/resources"
-    }
-
-    into(layout.buildDirectory.dir(LiquibaseDockerTask.DOCKER_DIR).get())
-}
-
-tasks.register('clean', Delete) {
-    delete layout.buildDirectory
-}
-
-tasks.register('docker', LiquibaseDockerTask) {
-    dependsOn 'dockerPrepare'
 }

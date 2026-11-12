@@ -1,0 +1,42 @@
+/**
+ * Copyright (c) 2023. Cellpoint Digital
+ * www.cellpointdigital.com
+ *
+ */
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+group = 'com.cellpointdigital'
+version = '2.0.0-SNAPSHOT'
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}
+
+gradlePlugin {
+    plugins {
+        gradleCommon {
+            id = 'com.cellpointdigital.gradle-common'
+            implementationClass = 'addons.javafeatures.JavaFeaturesPlugin'
+        }
+        gradleGit {
+            id = 'com.cellpointdigital.gradle-git'
+            implementationClass = 'addons.git.GitPlugin'
+        }
+        gradleCompose {
+            id = 'com.cellpointdigital.gradle-compose'
+            implementationClass = 'addons.compose.ComposePlugin'
+        }
+        gradleLiquibase {
+            id = 'com.cellpointdigital.gradle-liquibase'
+            implementationClass = 'addons.liquibase.LiquibasePlugin'
+        }
+        gradleProjectInfo {
+            id = 'com.cellpointdigital.gradle-project-info'
+            implementationClass = 'addons.projectinfo.ProjectInfoPlugin'
+        }
+    }
+}

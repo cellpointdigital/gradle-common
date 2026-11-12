@@ -36,18 +36,29 @@ git submodule add --force https://github.com/cellpointdigital/gradle-common.git 
 It creates *addons* directory that contains last state of "main" branch of "gradle-common" repository. 
 
 
-2) You must define **ext.addonsPath** variable, and attach .gradle scripts. The root build.gradle may look like:
- 
+2) Include the `addons` build as a plugin build in `settings.gradle`:
+
+```groovy
+pluginManagement {
+    includeBuild('addons')
+}
+```
+
+Then the root build.gradle may look like:
+
 ```groovy
 plugins {
+  id 'com.cellpointdigital.gradle-common'
+  id 'com.cellpointdigital.gradle-git'
+  id 'com.cellpointdigital.gradle-compose' // optional
+  id 'com.cellpointdigital.gradle-project-info' // optional
   // declare versions of used plugins and attach them into gradle classpath
   id 'com.github.spotbugs' version '5.0.14' apply false // remove if you don`t want to use spotbugs  
 }
-
-ext['addonsPath'] = "${projectDir}/addons/src"
-apply from: "${addonsPath}/git.gradle"
-apply from: "${addonsPath}/compose.gradle" // optional
 ```
+
+The plugins set the `addonsPath` extra property automatically (default: `<projectDir>/addons/src`).
+You can override it with `-PaddonsPath=/path/to/addons/src` or in `gradle.properties`.
 
 3) assign credentials to access CPD maven repositories:  
 
@@ -75,21 +86,26 @@ jobs:
 Add these lines to build.gradle file:
 
 ```groovy
-apply from: "${addonsPath}/project_info.gradle" // optional 
-apply from: "${addonsPath}/common.gradle"
+plugins {
+    id 'java'
+    id 'com.cellpointdigital.gradle-common'
+    id 'com.cellpointdigital.gradle-project-info' // optional
+}
 
 useJavaFeatures {
-   javaVersion = JavaVersion.VERSION_17
+    javaVersion = JavaVersion.VERSION_17
 } configure()
 ```
 
 ### for liquibase
 
-Replace liquibase/build.gradle with these only 2 lines:
+Replace liquibase/build.gradle with these lines:
 
 ```groovy
-apply from: "${addonsPath}/project_info.gradle" // optional
-apply from: "${addonsPath}/liquibase.gradle"
+plugins {
+    id 'com.cellpointdigital.gradle-liquibase'
+    id 'com.cellpointdigital.gradle-project-info' // optional
+}
 ```
 
 

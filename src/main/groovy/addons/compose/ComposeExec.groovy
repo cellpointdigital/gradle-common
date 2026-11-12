@@ -4,6 +4,16 @@
  *
  * Exposes tasks for working with local docker compose plugin (docker-compose)
  */
+package addons.compose
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.Task
+import org.gradle.api.file.Directory
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
 
 abstract class ComposeExec extends DefaultTask {
 
@@ -72,26 +82,3 @@ abstract class ComposeExec extends DefaultTask {
         checked.findAll { taskNames.contains(it) }.forEach { dependsOnAllExisted(it) }
     }
 }
-
-tasks.register('up', ComposeExec) {
-    group = 'docker-compose'
-    description = 'Builds docker containers and starts up it in docker-compose project.'
-    dependsOnIfRequested('clean', 'down')
-    dependsOnAllExisted('docker')
-    composeCommand = ['up', '-d']
-}
-
-tasks.register('down', ComposeExec) {
-    group = 'docker-compose'
-    description = 'Stops docker-compose project.'
-    composeCommand = ['down']
-}
-
-tasks.register('restart', ComposeExec) {
-    group = 'docker-compose'
-    description = 'Just restarts docker-compose project.'
-    dependsOn('down')
-    dependsOnIfRequested('clean', 'build', 'docker')
-    composeCommand = ['up', '-d']
-}
-
