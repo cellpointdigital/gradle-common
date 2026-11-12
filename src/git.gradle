@@ -75,9 +75,20 @@ ext.gitDetails = gitInfo
 
 tasks.register('updateAddons', Task) {
     group = 'git'
-    description = 'Update "addons" submodule from remote origin server.'
+    description = 'Updating the "addons" submodule to the latest commit in the "main" branch on the origin server.'
     doLast {
-        "git submodule update -f --remote addons".execute()
-        "git add addons".execute()
+        [
+            'git -C addons fetch origin',
+            'git -C addons checkout -f -B main origin/main',
+            'git -C addons reset --hard origin/main',
+            'git -C addons clean -fd',
+            'git add addons'
+        ].each { command ->
+            def process = command.execute()
+            process.waitForProcessOutput(System.out, System.err)
+            if (process.exitValue() != 0) {
+                throw new GradleException("Command failed (${process.exitValue()}): ${command}")
+            }
+        }
     }
 }
