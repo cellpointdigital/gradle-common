@@ -75,9 +75,12 @@ ext.gitDetails = gitInfo
 
 tasks.register('updateAddons', Task) {
     group = 'git'
-    description = 'Update "addons" submodule from remote origin server.'
+    description = 'Updating the "addons" submodule to the latest commit in the "main" branch on the origin server.'
     doLast {
-        "git submodule update -f --remote addons".execute()
+        "git -C addons fetch origin".execute()
+        "git -C addons checkout -B main origin/main".execute()
+        "git -C addons reset --hard origin/main".execute()
+        "git -C addons clean -fd".execute()
         "git add addons".execute()
     }
 }
